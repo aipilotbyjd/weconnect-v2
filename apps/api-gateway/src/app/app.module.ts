@@ -2,6 +2,12 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health.controller';
+import { AuthController } from './controllers/auth.controller';
+import { UserController } from './controllers/user.controller';
+import { WorkflowController } from './controllers/workflow.controller';
+import { UserServiceClient } from './services/user-service.client';
+import { WorkflowServiceClient } from './services/workflow-service.client';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 
@@ -18,7 +24,18 @@ import { ThrottlerModule } from '@nestjs/throttler';
       },
     ]),
   ],
-  controllers: [AppController, HealthController],
-  providers: [AppService],
+  controllers: [
+    AppController, 
+    HealthController,
+    AuthController,
+    UserController,
+    WorkflowController,
+  ],
+  providers: [
+    AppService,
+    UserServiceClient,
+    WorkflowServiceClient,
+    JwtAuthGuard,
+  ],
 })
 export class AppModule {}

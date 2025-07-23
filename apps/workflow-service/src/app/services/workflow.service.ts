@@ -1,12 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
-import { 
-  IWorkflowRepository, 
-  IVersionRepository, 
-  Workflow, 
-  Version, 
-  Node, 
-  Connection 
-} from '@weconnect-v2/domain';
+import { IWorkflowRepository } from '../../../../../libs/domain/src/lib/workflow/repositories/workflow.repository.interface';
+import { IVersionRepository } from '../../../../../libs/domain/src/lib/workflow/repositories/version.repository.interface';
+import { Workflow } from '../../../../../libs/domain/src/lib/workflow/entities/workflow.entity';
+import { Version } from '../../../../../libs/domain/src/lib/workflow/entities/version.entity';
+import { Node } from '../../../../../libs/domain/src/lib/workflow/entities/node.entity';
+import { Connection } from '../../../../../libs/domain/src/lib/workflow/entities/connection.entity';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -30,7 +28,9 @@ export class WorkflowService {
       name: data.name,
       description: data.description,
       userId: data.userId,
-      isActive: false,
+      isActive: true,
+      version: 1,
+      settings: {},
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -79,7 +79,7 @@ export class WorkflowService {
     
     // Validate that workflow has at least one version
     const latestVersion = await this.versionRepository.findLatestByWorkflowId(id);
-    if (!latestVersion || !latestVersion.nodes || latestVersion.nodes.length === 0) {
+    if (!latestVersion || !latestVersion.data || !latestVersion.data.nodes || latestVersion.data.nodes.length === 0) {
       throw new BadRequestException('Cannot activate workflow without nodes');
     }
 
@@ -99,7 +99,7 @@ export class WorkflowService {
     
     // Get the latest version number
     const latestVersion = await this.versionRepository.findLatestByWorkflowId(workflowId);
-    const newVersionNumber = latestVersion ? latestVersion.versionNumber + 1 : 1;
+    const newVersionNumber = latestVersion ? latestVersion.version + 1 : 1;
 
     // Validate nodes and connections
     this.validateWorkflowStructure(data.nodes, data.connections);
@@ -107,9 +107,11 @@ export class WorkflowService {
     const version = await this.versionRepository.create({
       id: uuidv4(),
       workflowId,
-      versionNumber: newVersionNumber,
-      nodes: data.nodes,
-      connections: data.connections,
+      version: newVersionNumber,
+      data: {
+        nodes: data.nodes,
+        connections: data.connections,
+      },
       createdAt: new Date(),
     });
 

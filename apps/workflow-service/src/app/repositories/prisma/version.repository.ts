@@ -1,34 +1,39 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@weconnect-v2/prisma';
-import { IVersionRepository, Version } from '@weconnect-v2/domain';
+import { PrismaService } from '../../../../../../libs/src/lib/prisma/prisma.service';
+import { IVersionRepository } from '../../../../../../libs/domain/src/lib/workflow/repositories/version.repository.interface';
+import { Version } from '../../../../../../libs/domain/src/lib/workflow/entities/version.entity';
 
 @Injectable()
 export class PrismaVersionRepository implements IVersionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(version: Partial<Version>): Promise<Version> {
-    return this.prisma.workflowVersion.create({
-      data: version,
+    const result = await this.prisma.workflowVersion.create({
+      data: version as any,
     });
+    return result as Version;
   }
 
   async findByWorkflowId(workflowId: string): Promise<Version[]> {
-    return this.prisma.workflowVersion.findMany({
+    const results = await this.prisma.workflowVersion.findMany({
       where: { workflowId },
-      orderBy: { versionNumber: 'desc' },
+      orderBy: { version: 'desc' },
     });
+    return results as Version[];
   }
 
   async findLatestByWorkflowId(workflowId: string): Promise<Version | null> {
-    return this.prisma.workflowVersion.findFirst({
+    const result = await this.prisma.workflowVersion.findFirst({
       where: { workflowId },
-      orderBy: { versionNumber: 'desc' },
+      orderBy: { version: 'desc' },
     });
+    return result as Version | null;
   }
 
   async findById(id: string): Promise<Version | null> {
-    return this.prisma.workflowVersion.findUnique({
+    const result = await this.prisma.workflowVersion.findUnique({
       where: { id },
     });
+    return result as Version | null;
   }
 }

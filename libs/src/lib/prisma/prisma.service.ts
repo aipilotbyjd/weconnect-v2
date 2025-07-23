@@ -1,52 +1,12 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { PrismaClient } from '../../../generated/prisma';
+import { PrismaClient } from '../../../../generated/prisma';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   private readonly logger = new Logger(PrismaService.name);
 
   constructor() {
-    super({
-      log: [
-        {
-          emit: 'event',
-          level: 'query',
-        },
-        {
-          emit: 'event',
-          level: 'error',
-        },
-        {
-          emit: 'event',
-          level: 'info',
-        },
-        {
-          emit: 'event',
-          level: 'warn',
-        },
-      ],
-    });
-
-    // Log database queries in development
-    if (process.env.NODE_ENV === 'development') {
-      this.$on('query', (e) => {
-        this.logger.debug(`Query: ${e.query}`);
-        this.logger.debug(`Params: ${e.params}`);
-        this.logger.debug(`Duration: ${e.duration}ms`);
-      });
-    }
-
-    this.$on('error', (e) => {
-      this.logger.error(e);
-    });
-
-    this.$on('warn', (e) => {
-      this.logger.warn(e);
-    });
-
-    this.$on('info', (e) => {
-      this.logger.log(e);
-    });
+    super();
   }
 
   async onModuleInit() {

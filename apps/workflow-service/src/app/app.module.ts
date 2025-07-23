@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '@weconnect-v2/prisma';
+import { PrismaModule } from '../../../../libs/src/lib/prisma/prisma.module';
 import { WorkflowController } from './controllers/workflow.controller';
 import { WorkflowService } from './services/workflow.service';
 import { PrismaWorkflowRepository } from './repositories/prisma/workflow.repository';

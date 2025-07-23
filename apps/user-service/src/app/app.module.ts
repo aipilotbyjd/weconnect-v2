@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { DatabaseModule } from '@weconnect-v2/database';
-// TODO: Fix import path once database library is properly exported
-import { UserController } from '../presentation/controllers/user.controller';
-import { UserService } from '../application/services/user.service';
-import { PrismaUserRepository } from '../infrastructure/repositories/prisma-user.repository';
-import { UserRepository } from '../domain/repositories/user.repository';
+import { PassportModule } from '@nestjs/passport';
+import { PrismaModule } from '../../../../libs/src/lib/prisma/prisma.module';
+import { UserController } from './controllers/user.controller';
+import { UserService } from './services/user.service';
+import { AuthService } from './services/auth.service';
+import { PrismaUserRepository } from './repositories/prisma/user.repository';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
 
 @Module({
   imports: [
@@ -14,21 +16,25 @@ import { UserRepository } from '../domain/repositories/user.repository';
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
     }),
-    DatabaseModule,
+    PrismaModule,
+    PassportModule,
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET || 'your-secret-key',
-      signOptions: { expiresIn: '15m' },
+      signOptions: { expiresIn: '24h' },
     }),
   ],
   controllers: [UserController],
   providers: [
     UserService,
+    AuthService,
     {
-      provide: UserRepository,
+      provide: 'IUserRepository',
       useClass: PrismaUserRepository,
     },
+    JwtStrategy,
+    LocalStrategy,
   ],
-  exports: [UserService],
+  exports: [UserService, AuthService],
 })
 export class AppModule {}

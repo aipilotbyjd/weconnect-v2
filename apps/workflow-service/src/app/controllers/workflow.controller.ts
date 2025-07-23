@@ -1,7 +1,10 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { WorkflowService } from '../services/workflow.service';
-import { Workflow, Version, Node, Connection } from '@weconnect-v2/domain';
+import { Workflow } from '../../../../../libs/domain/src/lib/workflow/entities/workflow.entity';
+import { Version } from '../../../../../libs/domain/src/lib/workflow/entities/version.entity';
+import { Node } from '../../../../../libs/domain/src/lib/workflow/entities/node.entity';
+import { Connection } from '../../../../../libs/domain/src/lib/workflow/entities/connection.entity';
 
 @Controller()
 export class WorkflowController {

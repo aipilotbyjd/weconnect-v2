@@ -1,10 +1,10 @@
 export class Version {
   id: string;
   workflowId: string;
-  versionNumber: number;
+  version: number;
+  data: any; // Complete workflow snapshot
+  message: string | null;
   createdAt: Date;
-  nodes: any[];
-  connections: any[];
 
   constructor(partial: Partial<Version>) {
     Object.assign(this, partial);

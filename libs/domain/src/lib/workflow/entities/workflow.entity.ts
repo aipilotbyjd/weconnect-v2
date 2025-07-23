@@ -5,13 +5,17 @@ import { Version } from './version.entity';
 export class Workflow {
   id: string;
   name: string;
-  description?: string;
+  description: string | null;
+  userId: string;
+  organizationId: string | null;
   isActive: boolean;
+  version: number;
+  settings: any;
   createdAt: Date;
   updatedAt: Date;
-  nodes: Node[];
-  connections: Connection[];
-  versions: Version[];
+  nodes?: Node[];
+  connections?: Connection[];
+  versions?: Version[];
 
   constructor(partial: Partial<Workflow>) {
     Object.assign(this, partial);

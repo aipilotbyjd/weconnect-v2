@@ -1,34 +1,39 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@weconnect-v2/prisma';
-import { IWorkflowRepository, Workflow } from '@weconnect-v2/domain';
+import { PrismaService } from '../../../../../../libs/src/lib/prisma/prisma.service';
+import { IWorkflowRepository } from '../../../../../../libs/domain/src/lib/workflow/repositories/workflow.repository.interface';
+import { Workflow } from '../../../../../../libs/domain/src/lib/workflow/entities/workflow.entity';
 
 @Injectable()
 export class PrismaWorkflowRepository implements IWorkflowRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(workflow: Partial<Workflow>): Promise<Workflow> {
-    return this.prisma.workflow.create({
-      data: workflow,
+    const result = await this.prisma.workflow.create({
+      data: workflow as any,
     });
+    return result as Workflow;
   }
 
   async findById(id: string): Promise<Workflow | null> {
-    return this.prisma.workflow.findUnique({
+    const result = await this.prisma.workflow.findUnique({
       where: { id },
     });
+    return result as Workflow | null;
   }
 
   async findByUserId(userId: string): Promise<Workflow[]> {
-    return this.prisma.workflow.findMany({
+    const results = await this.prisma.workflow.findMany({
       where: { userId },
     });
+    return results as Workflow[];
   }
 
   async update(id: string, updates: Partial<Workflow>): Promise<Workflow> {
-    return this.prisma.workflow.update({
+    const result = await this.prisma.workflow.update({
       where: { id },
-      data: updates,
+      data: updates as any,
     });
+    return result as Workflow;
   }
 
   async delete(id: string): Promise<void> {
