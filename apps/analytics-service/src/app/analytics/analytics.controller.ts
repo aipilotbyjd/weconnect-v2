@@ -5,7 +5,7 @@ import { AnalyticsService } from './analytics.service';
 @ApiTags('Analytics')
 @Controller('analytics')
 export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) {}
+  constructor(private readonly analyticsService: AnalyticsService) { }
 
   @Get('dashboard')
   @ApiOperation({ summary: 'Get dashboard statistics' })

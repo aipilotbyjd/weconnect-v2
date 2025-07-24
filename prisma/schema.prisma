@@ -50,9 +50,12 @@ model Organization {
   updatedAt   DateTime           @updatedAt
 
   // Relations
-  users       User[]
-  workflows   Workflow[]
-  credentials Credential[]
+  users         User[]
+  workflows     Workflow[]
+  credentials   Credential[]
+  subscription  Subscription?
+  featureFlags  FeatureFlag[]
+  tenantConfig  TenantConfiguration?
 
   @@map("organizations")
 }
@@ -399,6 +402,192 @@ model PerformanceMetric {
 }
 
 // ================================
+// SAAS BILLING DOMAIN
+// ================================
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  organizationId     String             @unique
+  planId             String
+  stripeCustomerId   String?
+  stripeSubscriptionId String?
+  status             SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  canceledAt         DateTime?
+  trialEnd           DateTime?
+  metadata           Json               @default("{}")
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  // Relations
+  organization       Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan               BillingPlan        @relation(fields: [planId], references: [id])
+  invoices           Invoice[]
+  usageRecords       UsageRecord[]
+
+  @@map("subscriptions")
+}
+
+model BillingPlan {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  displayName     String
+  description     String?
+  price           Decimal  // Monthly price in cents
+  yearlyPrice     Decimal? // Yearly price in cents (optional)
+  currency        String   @default("USD")
+  interval        String   @default("month") // month, year
+  features        Json     @default("{}")
+  limits          Json     @default("{}")
+  stripePriceId   String?
+  stripeProductId String?
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  subscriptions   Subscription[]
+
+  @@map("billing_plans")
+}
+
+model Invoice {
+  id                String        @id @default(cuid())
+  subscriptionId    String
+  organizationId    String
+  stripeInvoiceId   String?
+  number            String        @unique
+  status            InvoiceStatus @default(DRAFT)
+  amount            Decimal       // Total amount in cents
+  subtotal          Decimal       // Subtotal in cents
+  tax               Decimal       @default(0) // Tax amount in cents
+  discount          Decimal       @default(0) // Discount in cents
+  currency          String        @default("USD")
+  dueDate           DateTime
+  paidAt            DateTime?
+  billingPeriodStart DateTime
+  billingPeriodEnd   DateTime
+  metadata          Json          @default("{}")
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  subscription      Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  items             InvoiceItem[]
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Int      @default(1)
+  unitPrice   Decimal  // Price per unit in cents
+  amount      Decimal  // Total amount in cents
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now())
+
+  // Relations
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_items")
+}
+
+model UsageRecord {
+  id             String   @id @default(cuid())
+  subscriptionId String
+  organizationId String
+  metricName     String   // e.g., "workflow_executions", "api_calls", "storage_gb"
+  quantity       Decimal
+  timestamp      DateTime @default(now())
+  billingPeriod  String   // e.g., "2024-01"
+  metadata       Json     @default("{}")
+
+  // Relations
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@map("usage_records")
+}
+
+model PaymentMethod {
+  id               String   @id @default(cuid())
+  organizationId   String
+  stripePaymentMethodId String?
+  type             String   // card, bank_account, etc.
+  brand            String?  // visa, mastercard, etc.
+  last4            String?
+  expiryMonth      Int?
+  expiryYear       Int?
+  isDefault        Boolean  @default(false)
+  metadata         Json     @default("{}")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("payment_methods")
+}
+
+// ================================
+// SAAS ANALYTICS & TRACKING
+// ================================
+
+model Feature {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  displayName String
+  description String?
+  category    String
+  isEnabled   Boolean  @default(true)
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  featureFlags FeatureFlag[]
+
+  @@map("features")
+}
+
+model FeatureFlag {
+  id             String   @id @default(cuid())
+  featureId      String
+  organizationId String?
+  userId         String?
+  isEnabled      Boolean  @default(false)
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  feature        Feature       @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([featureId, organizationId, userId])
+  @@map("feature_flags")
+}
+
+model TenantConfiguration {
+  id             String   @id @default(cuid())
+  organizationId String   @unique
+  subdomain      String?  @unique
+  customDomain   String?  @unique
+  branding       Json     @default("{}")
+  emailSettings  Json     @default("{}")
+  integrations   Json     @default("{}")
+  security       Json     @default("{}")
+  features       Json     @default("{}")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_configurations")
+}
+
+// ================================
 // ENUMS
 // ================================
 
@@ -452,5 +641,23 @@ enum HttpMethod {
   PUT
   DELETE
   PATCH
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  PAST_DUE
+  TRIALING
+  UNPAID
+}
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  VOID
+  UNCOLLECTIBLE
 }
 
