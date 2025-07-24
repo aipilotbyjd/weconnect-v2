@@ -275,8 +275,8 @@ npx nx test workflow-engine
 # Build all services
 npx nx build:all
 
-# Run E2E tests
-npx nx e2e api-gateway-e2e
+# Run all tests
+npx nx test
 
 # Lint and format
 npx nx lint:all
@@ -341,8 +341,8 @@ bun test
 # Integration tests
 bun test:integration
 
-# E2E tests
-bun test:e2e
+# All tests
+bun test:all
 
 # Load testing
 bun add -d artillery
