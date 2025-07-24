@@ -1,7 +1,7 @@
 {
   "name": "monitoring-service",
-  "$schema": "../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "monitoring-service/src",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/monitoring-service/src",
   "projectType": "application",
   "targets": {
     "build": {

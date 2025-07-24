@@ -10,7 +10,9 @@ import { WorkflowServiceClient } from './services/workflow-service.client';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { ServiceRegistryModule } from './service-registry/service-registry.module'; // Importing new registry module
+import { ServiceRegistryModule } from './service-registry/service-registry.module';
+import { LoadBalancerModule } from './load-balancer/load-balancer.module';
+import { CircuitBreakerModule } from './circuit-breaker/circuit-breaker.module';
 
 @Module({
   imports: [
@@ -24,7 +26,9 @@ import { ServiceRegistryModule } from './service-registry/service-registry.modul
         limit: 100, // 100 requests per minute per IP
       },
     ]),
-    ServiceRegistryModule, // Registering the new module
+    ServiceRegistryModule,
+    LoadBalancerModule,
+    CircuitBreakerModule,
   ],
   controllers: [
     AppController, 
