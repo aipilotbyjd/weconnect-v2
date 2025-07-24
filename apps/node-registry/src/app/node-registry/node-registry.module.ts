@@ -8,4 +8,4 @@ import { NodeExecutorService } from './node-executor.service';
   providers: [NodeRegistryService, NodeExecutorService],
   exports: [NodeRegistryService, NodeExecutorService],
 })
-export class NodeRegistryModule {}
+export class NodeRegistryModule { }

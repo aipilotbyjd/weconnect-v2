@@ -24,7 +24,7 @@ export class NodeExecutorService {
   private readonly logger = new Logger(NodeExecutorService.name);
   private readonly executors = new Map<string, any>();
 
-  constructor(private readonly nodeRegistry: NodeRegistryService) {}
+  constructor(private readonly nodeRegistry: NodeRegistryService) { }
 
   async executeNode(nodeType: string, context: NodeExecutionContext): Promise<NodeExecutionResult> {
     const startTime = Date.now();
@@ -67,7 +67,7 @@ export class NodeExecutorService {
       };
     } catch (error) {
       this.logger.error(`Node execution failed: ${error.message}`, error.stack);
-      
+
       return {
         success: false,
         error: error.message,
@@ -162,7 +162,7 @@ class WebhookTriggerExecutor {
 class DelayExecutor {
   async execute(context: NodeExecutionContext): Promise<NodeExecutionResult> {
     const { duration, unit = 's' } = context.parameters;
-    
+
     let milliseconds = duration;
     switch (unit) {
       case 's':

@@ -6,7 +6,7 @@ export class NodeRegistryService {
   private readonly logger = new Logger(NodeRegistryService.name);
   private readonly nodeCache = new Map<string, any>();
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async onModuleInit() {
     await this.loadBuiltInNodes();
@@ -81,7 +81,7 @@ export class NodeRegistryService {
 
   async updateNode(name: string, updates: any) {
     const existingNode = await this.getNodeDefinition(name);
-    
+
     const updated = await this.prisma.nodeDefinition.update({
       where: { name },
       data: {
@@ -105,7 +105,7 @@ export class NodeRegistryService {
 
     // Clear cache
     this.nodeCache.delete(name);
-    
+
     this.logger.log(`Node '${name}' removed successfully`);
   }
 
@@ -123,7 +123,7 @@ export class NodeRegistryService {
 
   async validateNodeConfig(name: string, config: any) {
     const nodeDefinition = await this.getNodeDefinition(name);
-    
+
     // Validate configuration against node properties schema
     const errors: string[] = [];
     const properties = nodeDefinition.properties;
@@ -210,7 +210,7 @@ export class NodeRegistryService {
 
   private validateNodeDefinition(nodeDefinition: any) {
     const required = ['name', 'displayName', 'category', 'properties'];
-    
+
     for (const field of required) {
       if (!nodeDefinition[field]) {
         throw new Error(`Required field '${field}' is missing from node definition`);

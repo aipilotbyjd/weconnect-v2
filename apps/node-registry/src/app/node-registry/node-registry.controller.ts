@@ -5,7 +5,7 @@ import { NodeRegistryService } from './node-registry.service';
 @ApiTags('node-registry')
 @Controller('nodes')
 export class NodeRegistryController {
-  constructor(private readonly nodeRegistryService: NodeRegistryService) {}
+  constructor(private readonly nodeRegistryService: NodeRegistryService) { }
 
   @Get()
   @ApiOperation({ summary: 'Get all available node definitions' })
