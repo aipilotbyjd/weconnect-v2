@@ -13,7 +13,7 @@ async function bootstrap() {
       transport: Transport.TCP,
       options: {
         host: '0.0.0.0',
-        port: 3002, // User service port
+        port: process.env.USER_SERVICE_PORT || 3001, // User service port
       },
     }
   );
@@ -28,7 +28,7 @@ async function bootstrap() {
   );
 
   await app.listen();
-  logger.log('🔐 User Service is listening on port 3002');
+  logger.log(`🔐 User Service is listening on port ${process.env.USER_SERVICE_PORT || 3001}`);
 }
 
 bootstrap().catch((error) => {

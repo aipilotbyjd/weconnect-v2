@@ -1,0 +1,39 @@
+{
+  "name": "monitoring-service",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "monitoring-service/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "webpack-cli build",
+        "args": ["--node-env=production"]
+      },
+      "configurations": {
+        "development": {
+          "args": ["--node-env=development"]
+        }
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "monitoring-service:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "monitoring-service:build:development"
+        },
+        "production": {
+          "buildTarget": "monitoring-service:build:production"
+        }
+      }
+    }
+  },
+  "tags": []
+}

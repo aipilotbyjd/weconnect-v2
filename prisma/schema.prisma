@@ -98,6 +98,8 @@ model Workflow {
   executions   Execution[]
   versions     WorkflowVersion[]
   shares       WorkflowShare[]
+  webhooks     Webhook[]
+  schedules    Schedule[]
 
   @@map("workflows")
 }
@@ -118,6 +120,7 @@ model WorkflowNode {
   sourceConnections WorkflowConnection[] @relation("SourceNode")
   targetConnections WorkflowConnection[] @relation("TargetNode")
   executionSteps    ExecutionStep[]
+  webhooks          Webhook[]
 
   @@map("workflow_nodes")
 }
@@ -247,10 +250,15 @@ model Credential {
   userId         String
   organizationId String?
   data           String    // Encrypted JSON
+  encryptionKeyId String   @default("default")
+  oauthData      Json?     // OAuth tokens and refresh info
+  testConnectionData Json? // Last connection test results
+  metadata       Json      @default("{}")
   isActive       Boolean   @default(true)
+  expiresAt      DateTime?
+  lastUsed       DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
-  lastUsed       DateTime?
 
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -284,6 +292,110 @@ model AuditLog {
   timestamp DateTime @default(now())
 
   @@map("audit_logs")
+}
+
+// ================================
+// ADDITIONAL ADVANCED MODELS
+// ================================
+
+// Node Registry for Dynamic Nodes
+model NodeDefinition {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  displayName     String
+  description     String?
+  category        String
+  subcategory     String?
+  version         String   @default("1.0.0")
+  icon            String?
+  color           String?  // Hex color
+  properties      Json     // Node property schema
+  credentials     Json     @default("[]")
+  webhookMethods  String[] // Supported HTTP methods
+  pollingConfig   Json?
+  rateLimits      Json     @default("{}")
+  documentationUrl String?
+  isTrigger       Boolean  @default(false)
+  isWebhook       Boolean  @default(false)
+  isPolling       Boolean  @default(false)
+  tags            String[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("node_definitions")
+}
+
+// Webhooks
+model Webhook {
+  id               String   @id @default(cuid())
+  workflowId       String
+  nodeId           String
+  path             String   @unique
+  method           HttpMethod @default(POST)
+  authentication  Json     @default("{}")
+  rateLimiting     Json     @default("{}")
+  requestValidation Json    @default("{}")
+  responseConfig   Json     @default("{}")
+  isActive         Boolean  @default(true)
+  statistics       Json     @default("{}")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  node     WorkflowNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@map("webhooks")
+}
+
+// Schedules
+model Schedule {
+  id             String    @id @default(cuid())
+  workflowId     String
+  name           String?
+  cronExpression String
+  timezone       String    @default("UTC")
+  isActive       Boolean   @default(true)
+  nextExecution  DateTime?
+  lastExecution  DateTime?
+  executionCount Int       @default(0)
+  maxExecutions  Int?
+  retryConfig    Json      @default("{}")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@map("schedules")
+}
+
+// Real-time connections tracking
+model RealtimeConnection {
+  id           String   @id @default(cuid())
+  userId       String
+  connectionId String
+  connectionType String // websocket, webrtc
+  room         String?  // For grouping connections
+  metadata     Json     @default("{}")
+  connectedAt  DateTime @default(now())
+  lastPing     DateTime @default(now())
+
+  @@map("realtime_connections")
+}
+
+// Performance metrics
+model PerformanceMetric {
+  id          String   @id @default(cuid())
+  entityType  String   // workflow, node, execution
+  entityId    String
+  metricName  String
+  metricValue Decimal
+  metricUnit  String?
+  tags        Json     @default("{}")
+  timestamp   DateTime @default(now())
+
+  @@map("performance_metrics")
 }
 
 // ================================
@@ -332,5 +444,13 @@ enum LogLevel {
   INFO
   WARN
   ERROR
+}
+
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  DELETE
+  PATCH
 }
 

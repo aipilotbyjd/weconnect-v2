@@ -16,6 +16,9 @@
     "baseUrl": ".",
     "paths": {
       "@weconnect-v2/database": ["libs/src/index.ts"],
+      "@weconnect-v2/execution": ["libs/execution/src/index.ts"],
+      "@weconnect-v2/messaging": ["libs/messaging/src/index.ts"],
+      "@weconnect-v2/nodes": ["libs/nodes/src/index.ts"],
       "@weconnect-v2/shared-types": ["libs/shared/src/index.ts"]
     }
   },
